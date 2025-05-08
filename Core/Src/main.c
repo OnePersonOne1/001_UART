@@ -45,7 +45,8 @@ RTC_HandleTypeDef hrtc;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+int i = 0;
+uint8_t uartBuffer[512];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
