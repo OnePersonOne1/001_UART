@@ -48,6 +48,7 @@ UART_HandleTypeDef huart2;
 int i = 0;
 uint8_t uartBuffer[512];
 int change_main1;
+int change_main2;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
