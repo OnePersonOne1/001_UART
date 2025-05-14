@@ -48,6 +48,8 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 int i = 0;
 uint8_t uartBuffer[512];
+uint8_t recvChar;
+char last4[5] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,10 +106,20 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    sprintf(uartBuffer, "Counting loop: %d\n", i);
-    HAL_UART_Transmit(&huart2, uartBuffer, strlen(uartBuffer), 100);
-    i++;
-    HAL_Delay(1000);
+    if (HAL_UART_Receive(&huart2, &recvChar, 1, 100) == HAL_OK)
+    {
+        last4[0] = last4[1];
+        last4[1] = last4[2];
+        last4[2] = last4[3];
+        last4[3] = recvChar;
+        last4[4] = '\0';
+
+        if (strcmp(last4, "test") == 0)
+        {
+            sprintf((char *)uartBuffer, "test\r\n");
+            HAL_UART_Transmit(&huart2, uartBuffer, strlen((char *)uartBuffer), 100);
+        }
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
