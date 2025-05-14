@@ -18,7 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include <string.h>
+#include <stdio.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -47,8 +48,6 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 int i = 0;
 uint8_t uartBuffer[512];
-int change_main1;
-int change_main2;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
