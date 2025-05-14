@@ -127,9 +127,8 @@ int main(void)
         }
         else  // overflow 방지
         {
-            inputBuffer[127] = '\0';
-            char temp[64] = "Error: input is too long\r\n";
-            HAL_UART_Transmit(&huart2, (uint8_t *)temp, strlen(temp), 100);
+            HAL_UART_Transmit(&huart2, (uint8_t *)"Error: input is too long\r\n",
+            strlen("Error: input is too long\r\n"), 100);
             idx = 0;
             memset(inputBuffer, 0, sizeof(inputBuffer));
         }
