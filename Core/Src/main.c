@@ -46,8 +46,9 @@ RTC_HandleTypeDef hrtc;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-int i = 0;
+int idx = 0;
 uint8_t uartBuffer[512];
+uint8_t inputBuffer[128];
 uint8_t recvChar;
 char last4[5] = {0};
 /* USER CODE END PV */
@@ -108,16 +109,29 @@ int main(void)
   {
     if (HAL_UART_Receive(&huart2, &recvChar, 1, 100) == HAL_OK)
     {
-        last4[0] = last4[1];
-        last4[1] = last4[2];
-        last4[2] = last4[3];
-        last4[3] = recvChar;
-        last4[4] = '\0';
-
-        if (strcmp(last4, "test") == 0)
+        if (recvChar == '\r' || recvChar == '\n')  // 줄 종료 감지
         {
-            sprintf((char *)uartBuffer, "test\r\n");
-            HAL_UART_Transmit(&huart2, uartBuffer, strlen((char *)uartBuffer), 100);
+            inputBuffer[idx] = '\0';  // 문자열 종료
+
+            if (idx > 0){  // 실제 내용이 있을 때만 출력
+                HAL_UART_Transmit(&huart2, (char *)"received: ", strlen("received: "), 100);
+                HAL_UART_Transmit(&huart2, inputBuffer, strlen((char *)inputBuffer), 100);
+                HAL_UART_Transmit(&huart2, (char *)"\r\n", 2, 100);
+            }
+            idx = 0;  // 다시 입력 시작
+            memset(inputBuffer, 0, sizeof(inputBuffer));
+        }
+        else if (idx < 128 - 1)  // 최대 127글자까지 입력 받기
+        {
+            inputBuffer[idx++] = recvChar;
+        }
+        else  // overflow 방지
+        {
+            inputBuffer[127] = '\0';
+            char temp[64] = "Error: input is too long\r\n";
+            HAL_UART_Transmit(&huart2, (uint8_t *)temp, strlen(temp), 100);
+            idx = 0;
+            memset(inputBuffer, 0, sizeof(inputBuffer));
         }
     }
     /* USER CODE END WHILE */
