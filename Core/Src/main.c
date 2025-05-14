@@ -18,9 +18,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include <string.h>
-#include <stdio.h>
+
 /* Private includes ----------------------------------------------------------*/
+#include <stdio.h>
+#include <string.h>
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -58,6 +59,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_RTC_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -98,41 +100,21 @@ int main(void)
   MX_GPIO_Init();
   MX_RTC_Init();
   MX_USART2_UART_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
   sprintf(uartBuffer, "Hello World\n");
   HAL_UART_Transmit(&huart2, uartBuffer, strlen(uartBuffer), 100);
+
+  HAL_UART_Receive_IT(&huart2, &recvChar, 1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    if (HAL_UART_Receive(&huart2, &recvChar, 1, 100) == HAL_OK)
-    {
-        if (recvChar == '\r' || recvChar == '\n')  // 줄 종료 감지
-        {
-            inputBuffer[idx] = '\0';  // 문자열 종료
-
-            if (idx > 0){  // 실제 내용이 있을 때만 출력
-                HAL_UART_Transmit(&huart2, (char *)"received: ", strlen("received: "), 100);
-                HAL_UART_Transmit(&huart2, inputBuffer, strlen((char *)inputBuffer), 100);
-                HAL_UART_Transmit(&huart2, (char *)"\r\n", 2, 100);
-            }
-            idx = 0;  // 다시 입력 시작
-            memset(inputBuffer, 0, sizeof(inputBuffer));
-        }
-        else if (idx < 128 - 1)  // 최대 127글자까지 입력 받기
-        {
-            inputBuffer[idx++] = recvChar;
-        }
-        else  // overflow 방지
-        {
-            HAL_UART_Transmit(&huart2, (uint8_t *)"Error: input is too long\r\n",
-            strlen("Error: input is too long\r\n"), 100);
-            idx = 0;
-            memset(inputBuffer, 0, sizeof(inputBuffer));
-        }
-    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -185,6 +167,17 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* USART2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(USART2_IRQn);
 }
 
 /**
@@ -295,7 +288,30 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART2)
+    {
+        switch (recvChar)
+        {
+            case '1':
+                HAL_UART_Transmit(&huart2, (uint8_t *)"A\r\n", 3, 100);
+                break;
+            case '2':
+                HAL_UART_Transmit(&huart2, (uint8_t *)"B\r\n", 3, 100);
+                break;
+            case '3':
+                HAL_UART_Transmit(&huart2, (uint8_t *)"C\r\n", 3, 100);
+                break;
+            default:
+                // 아무 처리 안 함
+                break;
+        }
 
+        // 다음 수신 등록 (반드시 필요)
+        HAL_UART_Receive_IT(&huart2, &recvChar, 1);
+    }
+}
 /* USER CODE END 4 */
 
 /**
